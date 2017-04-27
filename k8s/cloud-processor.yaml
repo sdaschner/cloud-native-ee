@@ -1,0 +1,33 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: cloud-processor
+spec:
+  selector:
+    app: cloud-processor
+  ports:
+    - port: 8080
+  type: NodePort
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: cloud-processor
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cloud-processor
+    spec:
+      containers:
+      - name: cloud-processor
+        image: sebastian-daschner.com:1000/cloud-processor:1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /cloud-processor/resources/forecast/simple
+            port: 8080
+      imagePullSecrets:
+      - name: regsecret
+      restartPolicy: Always

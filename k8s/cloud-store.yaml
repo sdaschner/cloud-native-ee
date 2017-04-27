@@ -1,0 +1,62 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: cloud-store
+spec:
+  selector:
+    app: cloud-store
+  ports:
+    - port: 5432
+  type: NodePort
+---
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: cloud-store
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: cloud-store
+    spec:
+      containers:
+      - image: postgres:9.5
+        name: cloud-store
+        env:
+        - name: POSTGRES_USER
+          value: postgres
+        env:
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        volumeMounts:
+        - name: cloud-storage
+          mountPath: /var/lib/postgresql/data/
+      volumes:
+      - name: cloud-storage
+        persistentVolumeClaim:
+          claimName: cloud-storage-claim
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: cloud-storage-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: cloud-storage
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /home/cloud-storage

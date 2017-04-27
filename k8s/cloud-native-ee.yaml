@@ -6,13 +6,11 @@ spec:
   selector:
     app: cloud-native-ee
   ports:
-    - protocol: TCP
-      port: 8080
-      targetPort: 8080
+    - port: 8080
   type: NodePort
 ---
-apiVersion: apps/v1beta1
 kind: Deployment
+apiVersion: apps/v1beta1
 metadata:
   name: cloud-native-ee
 spec:
@@ -23,9 +21,29 @@ spec:
         app: cloud-native-ee
     spec:
       containers:
-      - image: sebastian-daschner.com:1000/cloud-native-ee:1
+      - name: cloud-native-ee
+        image: sebastian-daschner.com:1000/cloud-native-ee:7
         imagePullPolicy: IfNotPresent
-        name: cloud-native-ee
+        volumeMounts:
+        - name: config-volume
+          mountPath: /opt/wildfly/modules/com/sebastian-daschner/configuration/main/properties
+        livenessProbe:
+          httpGet:
+            path: /cloud-native-ee/resources/hello
+            port: 8080
+      volumes:
+      - name: config-volume
+        configMap:
+          name: hello-config
       imagePullSecrets:
       - name: regsecret
       restartPolicy: Always
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: hello-config
+data:
+  application.properties: |
+    hello.greeting=Hi
+    hello.name=Kubernetes
