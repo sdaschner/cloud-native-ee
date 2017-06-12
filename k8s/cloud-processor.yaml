@@ -28,6 +28,10 @@ spec:
           httpGet:
             path: /cloud-processor/resources/forecast/simple
             port: 8080
+        readinessProbe:
+          httpGet:
+            path: /cloud-processor/resources/forecast/simple
+            port: 8080
       imagePullSecrets:
       - name: regsecret
       restartPolicy: Always
